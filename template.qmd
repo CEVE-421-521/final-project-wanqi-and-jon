@@ -46,7 +46,7 @@ The parking garage problem is currently structured to assume that demand is dete
 We will explore through research the relationship between price of parking and the demand of parking to implement into our get_action function. We will mathematically represent this relationship through a equation derived from our research. 
 We will be considering the case where we are taking yearly time steps to represent a garage that rents out spots on a yearly basis. At the end of each year, we will evaluate whether demand of that year given the elasticity of demand, exceeds capacity enough to justify building an additional level. We will analyze this case for multiple demand vs. price curve.
 
-Demand is a quantifiable variable for many cases outsid eof parking that determine whether a given action will be taken. By more accurately modeling this relationship between how the price of *something* might change the demand of it, and therefore the construction that might take place as a result, we can apply this to other climate scenarios that would require sequential decision making. For example, the decision to expand a solar farm on a an annual basis dependent on the demand of the energy for the clients it serve. 
+Demand is a quantifiable variable for many cases outside of parking that determine whether a given action will be taken. By more accurately modeling this relationship between how the price of *something* might change the demand of it, and therefore the construction that might take place as a result, we can apply this to other climate scenarios that would require sequential decision making. For example, the decision to expand a solar farm on a an annual basis dependent on the demand of the energy for the clients it serve. 
 
 
 ## Selected Feature
