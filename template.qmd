@@ -100,3 +100,88 @@ Discuss the broader implications of your work for climate risk management and th
 
 :::{#refs}
 :::
+
+```{julia}
+using Plots
+Plots.default(; margin=5Plots.mm)
+```
+
+```{julia}
+function optimize(maxSpots, increment, start_spots, m)
+    b = maxSpots
+    levels_to_add = div(maxSpots - start_spots, increment)
+    optLevels = 0 
+    optProfit = get_profit(start_spots, m, b)
+    curr_levels = 0
+    while curr_levels < levels_to_add
+        curr_capacity = start_spots + curr_levels * increment
+        profit = get_profit(curr_capacity, m, b)
+        if profit > optProfit
+            optProfit = profit
+            optLevels = curr_levels
+        end
+        curr_levels += 1
+    end
+    return optLevels
+end
+```
+
+```{julia}
+function get_profit(capacity, m, b)
+    price = div(capacity - b, m) # Floor Div for dollars
+    return price * capacity
+end
+```
+
+```{julia}
+maxSpots = 1110
+m = -37
+increment = 50
+start_spots = 185
+
+opt_levels_to_add = optimize(maxSpots, increment, start_spots, m)
+
+function simulation(timesteps, start_spots, increment, demand_growth_rate, init_b, m, inflation_rate)
+    y_levels = [] # LEVELS AT TIMETSTEP T
+    y_curr_profit = [] # PROFIT AT TIMESTEP T
+    y_net_profit = [] # NET PROFITS
+    net_profit = 0
+    curr_levels = 0
+    timestep = 0
+    curr_spots = start_spots
+    b = init_b
+
+    while timestep < timesteps
+        levels_to_add = optimize(b, increment, curr_spots, m)
+        if levels_to_add == 0
+            # println("Whoops")
+        end
+        curr_spots += increment * levels_to_add
+        curr_levels += levels_to_add
+
+        curr_profit = get_profit(curr_spots, m, b) / 1000
+        net_profit += curr_profit
+        push!(y_curr_profit, curr_profit)
+        push!(y_net_profit, net_profit)
+        push!(y_levels, curr_levels)
+
+        b *= (1 + demand_growth_rate)
+        m /= (1 + inflation_rate)
+
+        timestep += 1 
+    end
+
+    return y_levels
+end
+```
+
+```{julia}
+y_levels = simulation(25, 200, 50, 0.0045, 1110, -37, 0.04)
+println(y_levels)
+plot(y_levels, label="Optimate Levels at Time t", xlabel="Year", ylabel="Number of Levels",
+title="Parking Garage Simulation", lw=1, gridlinewidth=1, xticks=0:1:25, yticks=0:1:15)
+# plot(y_curr_profit, label="Current Annual Profit at time t")
+# plot(y_net_profit, label="Net Profit at time t")
+# legend()
+#display()
+```
