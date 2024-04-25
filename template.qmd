@@ -103,7 +103,15 @@ Discuss the broader implications of your work for climate risk management and th
 
 ```{julia}
 using Plots
+using Distributions
 Plots.default(; margin=5Plots.mm)
+```
+
+```{julia}
+function get_profit(capacity, m, b)
+    price = div(capacity - b, m) # Floor Div for dollars
+    return (price * capacity)-(30000 * capacity)
+end
 ```
 
 ```{julia}
@@ -126,18 +134,12 @@ function optimize(maxSpots, increment, start_spots, m)
 end
 ```
 
-```{julia}
-function get_profit(capacity, m, b)
-    price = div(capacity - b, m) # Floor Div for dollars
-    return price * capacity
-end
-```
 
 ```{julia}
-maxSpots = 1110
-m = -37
-increment = 50
-start_spots = 185
+maxSpots = 1500
+m = -0.046
+increment = 200
+start_spots = 0
 
 opt_levels_to_add = optimize(maxSpots, increment, start_spots, m)
 
@@ -176,10 +178,10 @@ end
 ```
 
 ```{julia}
-y_levels = simulation(25, 200, 50, 0.0045, 1110, -37, 0.04)
+y_levels = simulation(25, 0, 200, rand(Normal(0.0045, 0.001)), 1500 , -0.046, 0.04)
 println(y_levels)
 plot(y_levels, label="Optimate Levels at Time t", xlabel="Year", ylabel="Number of Levels",
-title="Parking Garage Simulation", lw=1, gridlinewidth=1, xticks=0:1:25, yticks=0:1:15)
+title="Parking Garage Simulation", lw=1, gridlinewidth=1, xticks=0:1:25, yticks=0:1:100)
 # plot(y_curr_profit, label="Current Annual Profit at time t")
 # plot(y_net_profit, label="Net Profit at time t")
 # legend()
