@@ -83,6 +83,7 @@ Provide sufficient detail to demonstrate how the implemented feature addresses t
 Use the `#| output: false` and/or `#| echo: false` tags to hide code output and code cells in the final report except where showing the output (e.g.g, a plot) or the code (e.g., how you are sampling SOWs) adds value to the discussion.
 You may have multiple subsections of results, which you can create using `##`.
 
+
 # Conclusions
 
 ## Discussion
@@ -108,22 +109,25 @@ Plots.default(; margin=5Plots.mm)
 ```
 
 ```{julia}
-function get_profit(capacity, m, b)
+function get_profit(capacity, m, b, cost)
+
+    # Cost is cost per spot 
     price = div(capacity - b, m) # Floor Div for dollars
-    return (price * capacity)-(30000 * capacity)
+    return (price * capacity)-(cost * capacity)
 end
 ```
 
 ```{julia}
-function optimize(maxSpots, increment, start_spots, m)
+
+function optimize(maxSpots, increment, start_spots, m, cost_per_spot)
     b = maxSpots
     levels_to_add = div(maxSpots - start_spots, increment)
     optLevels = 0 
-    optProfit = get_profit(start_spots, m, b)
+    optProfit = get_profit(start_spots, m, b, cost_per_spot)
     curr_levels = 0
     while curr_levels < levels_to_add
         curr_capacity = start_spots + curr_levels * increment
-        profit = get_profit(curr_capacity, m, b)
+        profit = get_profit(curr_capacity, m, b, cost_per_spot)
         if profit > optProfit
             optProfit = profit
             optLevels = curr_levels
@@ -136,14 +140,8 @@ end
 
 
 ```{julia}
-maxSpots = 1500
-m = -0.046
-increment = 200
-start_spots = 0
 
-opt_levels_to_add = optimize(maxSpots, increment, start_spots, m)
-
-function simulation(timesteps, start_spots, increment, demand_growth_rate, init_b, m, inflation_rate)
+function simulation(timesteps, start_spots, increment, demand_growth_rate, init_b, m, inflation_rate, cost_per_spot)
     y_levels = [] # LEVELS AT TIMETSTEP T
     y_curr_profit = [] # PROFIT AT TIMESTEP T
     y_net_profit = [] # NET PROFITS
@@ -154,14 +152,14 @@ function simulation(timesteps, start_spots, increment, demand_growth_rate, init_
     b = init_b
 
     while timestep < timesteps
-        levels_to_add = optimize(b, increment, curr_spots, m)
+        levels_to_add = optimize(b, increment, curr_spots, m, cost_per_spot)
         if levels_to_add == 0
             # println("Whoops")
         end
         curr_spots += increment * levels_to_add
         curr_levels += levels_to_add
 
-        curr_profit = get_profit(curr_spots, m, b) / 1000
+        curr_profit = get_profit(curr_spots, m, b, cost_per_spot) / 1000
         net_profit += curr_profit
         push!(y_curr_profit, curr_profit)
         push!(y_net_profit, net_profit)
@@ -177,11 +175,231 @@ function simulation(timesteps, start_spots, increment, demand_growth_rate, init_
 end
 ```
 
+INCREMENT = 100
+Inflation Rate = 0.04
+Construction Cost = 30000
 ```{julia}
-y_levels = simulation(25, 0, 200, rand(Normal(0.0045, 0.001)), 1500 , -0.046, 0.04)
+timesteps = 25 
+start_spots = 0
+increment = 100
+demand_growth_rate = rand(Normal(0.0045, 0.001))
+init_b = 1500
+m = -0.046
+inflation_rate = 0.04
+cost_per_spot = 30000
+y_levels = simulation(timesteps, start_spots, increment, demand_growth_rate, init_b, m, inflation_rate, cost_per_spot)
+display_growth_rate = round(demand_growth_rate, sigdigits=3)
+plot_title = "Parking Garage Simulation"
+font_size = 16
 println(y_levels)
-plot(y_levels, label="Optimate Levels at Time t", xlabel="Year", ylabel="Number of Levels",
-title="Parking Garage Simulation", lw=1, gridlinewidth=1, xticks=0:1:25, yticks=0:1:100)
+plot(y_levels, label="Optimal Levels at Time t", xlabel="Year", ylabel="Number of Levels",
+title=plot_title, titlefontsize=font_size, lw=1, gridlinewidth=1, xticks=0:1:25, yticks=0:1:100)
+# plot(y_curr_profit, label="Current Annual Profit at time t")
+# plot(y_net_profit, label="Net Profit at time t")
+# legend()
+#display()
+```
+
+INCREMENT = 150
+Inflation Rate = 0.04
+Construction Cost = 30000
+```{julia}
+#| echo: false
+timesteps = 25 
+start_spots = 0
+increment = 150
+demand_growth_rate = rand(Normal(0.0045, 0.001))
+init_b = 1500
+m = -0.046
+inflation_rate = 0.04
+cost_per_spot = 30000
+y_levels = simulation(timesteps, start_spots, increment, demand_growth_rate, init_b, m, inflation_rate, cost_per_spot)
+display_growth_rate = round(demand_growth_rate, sigdigits=3)
+plot_title = "Parking Garage Simulation"
+font_size = 16
+println(y_levels)
+plot(y_levels, label="Optimal Levels at Time t", xlabel="Year", ylabel="Number of Levels",
+title=plot_title, titlefontsize=font_size, lw=1, gridlinewidth=1, xticks=0:1:25, yticks=0:1:100)
+# plot(y_curr_profit, label="Current Annual Profit at time t")
+# plot(y_net_profit, label="Net Profit at time t")
+# legend()
+#display()
+```
+
+INCREMENT = 200
+Inflation Rate = 0.04
+Construction Cost = 30000
+```{julia}
+#| echo: false
+timesteps = 25 
+start_spots = 0
+increment = 200
+demand_growth_rate = rand(Normal(0.0045, 0.001))
+init_b = 1500
+m = -0.046
+inflation_rate = 0.04
+cost_per_spot = 30000
+y_levels = simulation(timesteps, start_spots, increment, demand_growth_rate, init_b, m, inflation_rate, cost_per_spot)
+display_growth_rate = round(demand_growth_rate, sigdigits=3)
+plot_title = "Parking Garage Simulation"
+font_size = 16
+println(y_levels)
+plot(y_levels, label="Optimal Levels at Time t", xlabel="Year", ylabel="Number of Levels",
+title=plot_title, titlefontsize=font_size, lw=1, gridlinewidth=1, xticks=0:1:25, yticks=0:1:100)
+# plot(y_curr_profit, label="Current Annual Profit at time t")
+# plot(y_net_profit, label="Net Profit at time t")
+# legend()
+#display()
+```
+
+Increment = 150
+INFLATION RATE = 0.03
+Construction Cost = 30000
+```{julia}
+timesteps = 25 
+start_spots = 0
+increment = 150
+demand_growth_rate = rand(Normal(0.0045, 0.001))
+init_b = 1500
+m = -0.046
+inflation_rate = 0.03
+cost_per_spot = 30000
+y_levels = simulation(timesteps, start_spots, increment, demand_growth_rate, init_b, m, inflation_rate, cost_per_spot)
+display_growth_rate = round(demand_growth_rate, sigdigits=3)
+plot_title = "Parking Garage Simulation"
+font_size = 16
+println(y_levels)
+plot(y_levels, label="Optimal Levels at Time t", xlabel="Year", ylabel="Number of Levels",
+title=plot_title, titlefontsize=font_size, lw=1, gridlinewidth=1, xticks=0:1:25, yticks=0:1:100)
+# plot(y_curr_profit, label="Current Annual Profit at time t")
+# plot(y_net_profit, label="Net Profit at time t")
+# legend()
+#display()
+```
+
+Increment = 150
+INFLATION RATE = 0.04
+Construction Cost = 30000
+```{julia}
+#| echo: false
+timesteps = 25 
+start_spots = 0
+increment = 150
+demand_growth_rate = rand(Normal(0.0045, 0.001))
+init_b = 1500
+m = -0.046
+inflation_rate = 0.04
+cost_per_spot = 30000
+y_levels = simulation(timesteps, start_spots, increment, demand_growth_rate, init_b, m, inflation_rate, cost_per_spot)
+display_growth_rate = round(demand_growth_rate, sigdigits=3)
+plot_title = "Parking Garage Simulation"
+font_size = 16
+println(y_levels)
+plot(y_levels, label="Optimal Levels at Time t", xlabel="Year", ylabel="Number of Levels",
+title=plot_title, titlefontsize=font_size, lw=1, gridlinewidth=1, xticks=0:1:25, yticks=0:1:100)
+# plot(y_curr_profit, label="Current Annual Profit at time t")
+# plot(y_net_profit, label="Net Profit at time t")
+# legend()
+#display()
+```
+
+Increment = 150
+INFLATION RATE = 0.05
+Construction Cost = 30000
+```{julia}
+#| echo: false
+timesteps = 25 
+start_spots = 0
+increment = 150
+demand_growth_rate = rand(Normal(0.0045, 0.001))
+init_b = 1500
+m = -0.046
+inflation_rate = 0.05
+cost_per_spot = 30000
+y_levels = simulation(timesteps, start_spots, increment, demand_growth_rate, init_b, m, inflation_rate, cost_per_spot)
+display_growth_rate = round(demand_growth_rate, sigdigits=3)
+plot_title = "Parking Garage Simulation"
+font_size = 16
+println(y_levels)
+plot(y_levels, label="Optimal Levels at Time t", xlabel="Year", ylabel="Number of Levels",
+title=plot_title, titlefontsize=font_size, lw=1, gridlinewidth=1, xticks=0:1:25, yticks=0:1:100)
+# plot(y_curr_profit, label="Current Annual Profit at time t")
+# plot(y_net_profit, label="Net Profit at time t")
+# legend()
+#display()
+```
+
+Increment = 150
+Inflation Rate = 0.04
+CONSTRUCTION COST = 20000
+```{julia}
+timesteps = 25 
+start_spots = 0
+increment = 150
+demand_growth_rate = rand(Normal(0.0045, 0.001))
+init_b = 1500
+m = -0.046
+inflation_rate = 0.04
+cost_per_spot = 20000
+y_levels = simulation(timesteps, start_spots, increment, demand_growth_rate, init_b, m, inflation_rate, cost_per_spot)
+display_growth_rate = round(demand_growth_rate, sigdigits=3)
+plot_title = "Parking Garage Simulation"
+font_size = 16
+println(y_levels)
+plot(y_levels, label="Optimal Levels at Time t", xlabel="Year", ylabel="Number of Levels",
+title=plot_title, titlefontsize=font_size, lw=1, gridlinewidth=1, xticks=0:1:25, yticks=0:1:100)
+# plot(y_curr_profit, label="Current Annual Profit at time t")
+# plot(y_net_profit, label="Net Profit at time t")
+# legend()
+#display()
+```
+
+Increment = 150
+Inflation Rate = 0.04
+CONSTRUCTION COST = 30000
+```{julia}
+#| echo: false
+timesteps = 25 
+start_spots = 0
+increment = 150
+demand_growth_rate = rand(Normal(0.0045, 0.001))
+init_b = 1500
+m = -0.046
+inflation_rate = 0.04
+cost_per_spot = 30000
+y_levels = simulation(timesteps, start_spots, increment, demand_growth_rate, init_b, m, inflation_rate, cost_per_spot)
+display_growth_rate = round(demand_growth_rate, sigdigits=3)
+plot_title = "Parking Garage Simulation"
+font_size = 16
+println(y_levels)
+plot(y_levels, label="Optimal Levels at Time t", xlabel="Year", ylabel="Number of Levels",
+title=plot_title, titlefontsize=font_size, lw=1, gridlinewidth=1, xticks=0:1:25, yticks=0:1:100)
+# plot(y_curr_profit, label="Current Annual Profit at time t")
+# plot(y_net_profit, label="Net Profit at time t")
+# legend()
+#display()
+```
+
+Increment = 150
+Inflation Rate = 0.04
+CONSTRUCTION COST = 40000
+```{julia}
+#| echo: false
+timesteps = 25 
+start_spots = 0
+increment = 150
+demand_growth_rate = rand(Normal(0.0045, 0.001))
+init_b = 1500
+m = -0.046
+inflation_rate = 0.04
+cost_per_spot = 40000
+y_levels = simulation(timesteps, start_spots, increment, demand_growth_rate, init_b, m, inflation_rate, cost_per_spot)
+display_growth_rate = round(demand_growth_rate, sigdigits=3)
+plot_title = "Parking Garage Simulation"
+font_size = 16
+println(y_levels)
+plot(y_levels, label="Optimal Levels at Time t", xlabel="Year", ylabel="Number of Levels",
+title=plot_title, titlefontsize=font_size, lw=1, gridlinewidth=1, xticks=0:1:25, yticks=0:1:100)
 # plot(y_curr_profit, label="Current Annual Profit at time t")
 # plot(y_net_profit, label="Net Profit at time t")
 # legend()
