@@ -4,8 +4,9 @@
 \PassOptionsToPackage{dvipsnames,svgnames,x11names}{xcolor}
 %
 \documentclass[
-  11pt,
-]{article}
+  letterpaper,
+  DIV=11,
+  numbers=noendperiod]{scrartcl}
 
 \usepackage{amsmath,amssymb}
 \usepackage{iftex}
@@ -39,9 +40,8 @@
   \KOMAoptions{parskip=half}}
 \makeatother
 \usepackage{xcolor}
-\usepackage[margin=1in]{geometry}
 \setlength{\emergencystretch}{3em} % prevent overfull lines
-\setcounter{secnumdepth}{5}
+\setcounter{secnumdepth}{-\maxdimen} % remove section numbering
 % Make \paragraph and \subparagraph free-standing
 \ifx\paragraph\undefined\else
   \let\oldparagraph\paragraph
@@ -151,6 +151,7 @@
 \newcommand{\CSLRightInline}[1]{\parbox[t]{\linewidth - \csllabelwidth}{\strut#1\strut}}
 \newcommand{\CSLIndent}[1]{\hspace{\cslhangindent}#1}
 
+\KOMAoption{captions}{tableheading}
 \makeatletter
 \@ifpackageloaded{caption}{}{\usepackage{caption}}
 \AtBeginDocument{%
@@ -223,99 +224,154 @@
 The parking garage problem is currently structured to assume that demand
 is deterministic and constant. This is not representative of real world
 conditions as demand is highly dynamic and will change in response to
-various city conditions. For our final project, we want to better
-capture the variance in demand for parking, particularly in Houston. We
-will explore through research the relationship between price of parking
-and the demand of parking to implement into our get\_action function. We
-will mathematically represent this relationship through a equation
-derived from our research. We will be considering the case where we are
-taking yearly time steps to represent a garage that rents out spots on a
-yearly basis. At the end of each year, we will evaluate whether demand
-of that year given the elasticity of demand, exceeds capacity enough to
-justify building an additional level. We will analyze this case for
-multiple demand vs.~price curve.
+various city conditions. It does not consider that the price of a
+parking spot very much affects the demand for parking. That is, the
+higher the price of a parking spot, the lower the demand for the spots
+in that garage. The parking garage problem also currently will
+``decide'' to add another level if demand exceeds capacity at all, but
+that could be at a margin of even one spot, which is not realistic nor
+profitable.
+
+For our final project, we want to better capture the variance in demand
+for parking, particularly in San Francisco. We will explore through
+research the relationship between price of parking and the demand of
+parking to implement into a sequential decision problem of whether to
+build additional levels of a parking garage at a yearly timestep.
+
+\subsection{Selected Feature}\label{selected-feature}
+
+The feature we will include is the relationship between price and demand
+and how a difference in price will affect total revenue. At each yearly
+timestep, we will find the optimal amount of levels for the parking
+garage to exist at to maximize revenue, operating under the assumption
+that we are always building a capacity to match the demand. This
+resolves our problem statement by providing a representation that demand
+is not deterministic and that price is constant regardless of demand.
 
 Demand is a quantifiable variable for many cases outside of parking that
 determine whether a given action will be taken. By more accurately
 modeling this relationship between how the price of \emph{something}
-might change the demand of it, and therefore the construction that might
-take place as a result, we can apply this to other climate scenarios
-that would require sequential decision making. For example, the decision
-to expand a solar farm on a an annual basis dependent on the demand of
-the energy for the clients it serve.
-
-\subsection{Selected Feature}\label{selected-feature}
-
-Describe the feature you have selected to add to the existing
-decision-support tool. Discuss how this feature relates to the problem
-statement and its potential to improve climate risk assessment.
+might change the demand of it, and therefore the revenue and whether the
+construction that might take place as a result, we can apply this to
+other climate scenarios that would require sequential decision making.
+For example, the decision to expand a solar farm on an annual basis
+depends on the demand of the energy for the clients it serves and the
+price of the energy that can be supplied from the solar farm.
 
 \section{Literature Review}\label{literature-review}
 
-Provide a brief overview of the theoretical background related to your
-chosen feature. Cite at least two relevant journal articles to support
-your approach (see
-\href{https://quarto.org/docs/authoring/footnotes-and-citations.html}{Quarto
-docs} for help with citations). Explain how these articles contribute to
-the justification of your selected feature.
+Much of existing literature explores the demand side of the problem,
+using pricing to control demand instead of increasing capacity since
+varying the capacity-side is often seen as impractical and
+cost-prohibitive. For instance, Simicevic et al.~(2012) utilized a
+binary logit model to identify the main parameters that influenced user
+behavior in choosing where to park in Belgrade. They found that in the
+case of parking garages, as parking cost increases, demand for parking
+for the average driver would correspondingly decrease. This study proved
+sensitivity of pricing towards driver behavior, which directly
+correlates with garage occupancy.
+
+While we recognize that expanding the capacity of parking garages is not
+always practical, we wanted to incorporate this as an alternative since
+we wanted to account for all the decisions of the garage owner. For
+many, the main objective is to maximize profits, and in dense urban
+areas with high demand, the best way to maximize revenue may be to
+increase capacity. By incorporating capacity expansion, we aim to create
+a more comprehensive model for this sequential decision process,
+evaluating the tradeoffs between initial capital investment and long
+term revenue gain from increased parking capacity.
+
+Nijsten (2017) explored the optimization of parking capacities in urban
+areas with the following objectives - minimizing emissions, travel
+times, and maximizing efficiency in land utilization. Various
+evolutionary algorithms such as mutation and survivor selection were
+utilized to solve the optimization problem, applying to small networks.
+It was found that a rank-based selection method performed the best in
+optimizing parking capacities for a case study conducted in Delft. In
+the determination of the initial capacity for construction within our
+model, we based it on a similar ranking selection method to better model
+the optimization process.
 
 \section{Methodology}\label{methodology}
 
 \subsection{Implementation}\label{implementation}
 
-You should make your modifications in either the \texttt{HouseElevation}
-or \texttt{ParkingGarage} module. Detail the steps taken to implement
-the selected feature and integrate it into the decision-support tool.
-Include code snippets and explanations where necessary to clarify the
-implementation process.
+The data used to create our demand curve is sourced from the San
+Francisco Municipal Transit Authority. We utilized entry and exit data
+at the Union Square parking garage on March 29 2013 to determine demand
+for parking in relation to the price, as well as garage occupancy. We
+are assuming that conditions on this day are representative of daily
+conditions on any given day in the year.
+
+In order to build our price vs.~demand curve, many assumptions were
+made. We took the number of entries/exits to be the total daily demand.
+We then aimed to calculate a weighted average price for this total
+demand. We did this by categorizing every entry/exit data point into
+hourly price buckets varying from \$1-\$7. For example, if one of our
+entries' price was between \$3.5-\$4.49, it would be categorized as a
+\$4 cost. We calculated the average price to be the sum of each bucket
+price times the number of data points within that bucket, divided by the
+sum of all the data points, 657. This resulting price was at an hourly
+time step, so we multiplied this price by 12(assuming that very few
+people would park for more than half a day), and 365, to get it to a
+yearly time step price. We also assumed based on the data from San
+Francisco Municipal Transit Authority that at \$30/hour, the demand for
+parking would be zero. With these assumptions, we derived the following
+linear relationship: demand = -0.046*price + 1500.
+
+From there, we built a function to optimize the number of levels built
+starting with demand vs.~price relationship at a given year. We start
+with time year 1, with zero levels built. Within each time step, an
+original price is taken and at that associated demand, the total revenue
+is calculated. Included in this analysis is the construction costs per
+space, which is taken into account when calculating revenue. Litman
+(2023) found average construction costs for basic parking structures for
+various US cities in 2022. In San Francisco, it would cost \$30,316 to
+construct one additional space in an existing parking structure. You
+then consider within this analysis whether adding one more level that
+includes 150 more spots results in more revenue. If it does, you build
+that level. You then repeat the consideration for another level until it
+is no longer more profitable, having found the optimal number of levels.
+
+At the next time step, you start at the resulting number of levels from
+the previous time step, but the process of deciding whether to build
+additional levels remains the same. Additionally, at each time step, the
+y-intercept increases at a certain percentage to represent overall
+demand increase for parking. We took this value to be randomly generated
+from a normal distribution that represents the population increase of
+San Francisco, with a mean of 0.45\% and a standard deviation of 0.1\%.
+This represents the uncertainty of population growth. The slope of the
+curve is also changing to represent inflation at a certain rate, say,
+4\%. That is, the slope represents how many spots of demand you lose, at
+each dollar increases in price. At each time step, we divided the slope
+by 1.04, to show how with inflation, the number of spots of demand you
+lose with a dollar increase is less, because the dollar is worth less.
+We continue this analysis for some number of years, but this can be done
+for a shorter or longer period with a simple change.
 
 \subsection{Validation}\label{validation}
 
-As we have seen in labs, mistakes are inevitable and can lead to
-misleading results. To minimize the risk of errors making their way into
-final results, it is essential to validate the implemented feature.
-Describe the validation techniques used to ensure the accuracy and
-reliability of your implemented feature. Discuss any challenges faced
-during the validation process and how they were addressed.
+In order to validate our code, we ran the simulation function with
+varying values for deterministic parameters including: timestep, growth
+increment, inflation rate, and construction cost. We did so to
+qualitatively see if the results made sense with the change in
+parameters. For example, decreasing the increment (the number of
+additional spots per level built), should result in more levels being
+built initially as well as more frequently as the years progress. The
+same is true of the opposite. An increased inflation rate would mean
+more levels being built sooner (since there would be less demand
+decrease for each dollar decrease), which was reflected in how the code
+ran. An increase in construction cost per space would also result in
+less levels being built over time.
 
 \section{Results}\label{results}
 
-Present the results obtained from the enhanced decision-support tool.
-Use tables, figures, and visualizations to clearly communicate the
-outcomes. Provide sufficient detail to demonstrate how the implemented
-feature addresses the problem statement. Use the
-\texttt{\#\textbar{}\ output:\ false} and/or
-\texttt{\#\textbar{}\ echo:\ false} tags to hide code output and code
-cells in the final report except where showing the output (e.g.g, a
-plot) or the code (e.g., how you are sampling SOWs) adds value to the
-discussion. You may have multiple subsections of results, which you can
-create using \texttt{\#\#}.
-
-\section{Conclusions}\label{conclusions}
-
-\subsection{Discussion}\label{discussion}
-
-Analyze the implications of your results for climate risk management.
-Consider the context of the class themes and discuss how your findings
-contribute to the understanding of climate risk assessment. Identify any
-limitations of your approach and suggest potential improvements for
-future work.
-
-\subsection{Conclusions}\label{conclusions-1}
-
-Summarize the key findings of your project and reiterate the
-significance of your implemented feature in addressing the problem
-statement. Discuss the broader implications of your work for climate
-risk management and the potential for further research in this area.
-
-\section{References}\label{references}
-
-\phantomsection\label{refs}
-\begin{CSLReferences}{0}{1}
-\end{CSLReferences}
+With the simulation, we ran the simulation for a total of 9 times,
+varying each of the 3 main inputs to determine the relationship between
+each input and the optimal number of levels to build per year.
 
 \begin{Shaded}
-\begin{Highlighting}[numbers=left,,]
+\begin{Highlighting}[]
 \ImportTok{using} \BuiltInTok{Plots}
 \ImportTok{using} \BuiltInTok{Distributions}
 \NormalTok{Plots.}\FunctionTok{default}\NormalTok{(; margin}\OperatorTok{=}\FloatTok{5}\NormalTok{Plots.mm)}
@@ -323,7 +379,7 @@ risk management and the potential for further research in this area.
 \end{Shaded}
 
 \begin{Shaded}
-\begin{Highlighting}[numbers=left,,]
+\begin{Highlighting}[]
 \KeywordTok{function} \FunctionTok{get\_profit}\NormalTok{(capacity, m, b, cost)}
 
     \CommentTok{\# Cost is cost per spot }
@@ -338,7 +394,7 @@ get_profit (generic function with 1 method)
 \end{verbatim}
 
 \begin{Shaded}
-\begin{Highlighting}[numbers=left,,]
+\begin{Highlighting}[]
 \KeywordTok{function} \FunctionTok{optimize}\NormalTok{(maxSpots, increment, start\_spots, m, cost\_per\_spot)}
 \NormalTok{    b }\OperatorTok{=}\NormalTok{ maxSpots}
 \NormalTok{    levels\_to\_add }\OperatorTok{=} \FunctionTok{div}\NormalTok{(maxSpots }\OperatorTok{{-}}\NormalTok{ start\_spots, increment)}
@@ -364,7 +420,7 @@ optimize (generic function with 1 method)
 \end{verbatim}
 
 \begin{Shaded}
-\begin{Highlighting}[numbers=left,,]
+\begin{Highlighting}[]
 \KeywordTok{function} \FunctionTok{simulation}\NormalTok{(timesteps, start\_spots, increment, demand\_growth\_rate, init\_b, m, inflation\_rate, cost\_per\_spot)}
 \NormalTok{    y\_levels }\OperatorTok{=}\NormalTok{ [] }\CommentTok{\# LEVELS AT TIMETSTEP T}
 \NormalTok{    y\_curr\_profit }\OperatorTok{=}\NormalTok{ [] }\CommentTok{\# PROFIT AT TIMESTEP T}
@@ -407,8 +463,8 @@ simulation (generic function with 1 method)
 INCREMENT = 100 Inflation Rate = 0.04 Construction Cost = 30000
 
 \begin{Shaded}
-\begin{Highlighting}[numbers=left,,]
-\NormalTok{timesteps }\OperatorTok{=} \FloatTok{25} 
+\begin{Highlighting}[]
+\NormalTok{timesteps }\OperatorTok{=} \FloatTok{20} 
 \NormalTok{start\_spots }\OperatorTok{=} \FloatTok{0}
 \NormalTok{increment }\OperatorTok{=} \FloatTok{100}
 \NormalTok{demand\_growth\_rate }\OperatorTok{=} \FunctionTok{rand}\NormalTok{(}\FunctionTok{Normal}\NormalTok{(}\FloatTok{0.0045}\NormalTok{, }\FloatTok{0.001}\NormalTok{))}
@@ -431,7 +487,7 @@ INCREMENT = 100 Inflation Rate = 0.04 Construction Cost = 30000
 \end{Shaded}
 
 \begin{verbatim}
-Any[1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 5, 5, 5, 5, 5, 5]
+Any[1, 1, 1, 1, 2, 2, 2, 3, 3, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5, 5]
 \end{verbatim}
 
 \includegraphics{template_files/mediabag/template_files/figure-pdf/cell-6-output-2.pdf}
@@ -439,7 +495,7 @@ Any[1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 5, 5, 5, 5, 5, 5]
 INCREMENT = 150 Inflation Rate = 0.04 Construction Cost = 30000
 
 \begin{verbatim}
-Any[0, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 3, 4, 4, 4]
+Any[0, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3]
 \end{verbatim}
 
 \includegraphics{template_files/mediabag/template_files/figure-pdf/cell-7-output-2.pdf}
@@ -447,7 +503,7 @@ Any[0, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 3, 4, 4, 4]
 INCREMENT = 200 Inflation Rate = 0.04 Construction Cost = 30000
 
 \begin{verbatim}
-Any[0, 0, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3]
+Any[0, 0, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 3]
 \end{verbatim}
 
 \includegraphics{template_files/mediabag/template_files/figure-pdf/cell-8-output-2.pdf}
@@ -455,8 +511,8 @@ Any[0, 0, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3]
 Increment = 150 INFLATION RATE = 0.03 Construction Cost = 30000
 
 \begin{Shaded}
-\begin{Highlighting}[numbers=left,,]
-\NormalTok{timesteps }\OperatorTok{=} \FloatTok{25} 
+\begin{Highlighting}[]
+\NormalTok{timesteps }\OperatorTok{=} \FloatTok{20} 
 \NormalTok{start\_spots }\OperatorTok{=} \FloatTok{0}
 \NormalTok{increment }\OperatorTok{=} \FloatTok{150}
 \NormalTok{demand\_growth\_rate }\OperatorTok{=} \FunctionTok{rand}\NormalTok{(}\FunctionTok{Normal}\NormalTok{(}\FloatTok{0.0045}\NormalTok{, }\FloatTok{0.001}\NormalTok{))}
@@ -479,7 +535,7 @@ Increment = 150 INFLATION RATE = 0.03 Construction Cost = 30000
 \end{Shaded}
 
 \begin{verbatim}
-Any[0, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3]
+Any[0, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3]
 \end{verbatim}
 
 \includegraphics{template_files/mediabag/template_files/figure-pdf/cell-9-output-2.pdf}
@@ -487,7 +543,7 @@ Any[0, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3]
 Increment = 150 INFLATION RATE = 0.04 Construction Cost = 30000
 
 \begin{verbatim}
-Any[0, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4]
+Any[0, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3]
 \end{verbatim}
 
 \includegraphics{template_files/mediabag/template_files/figure-pdf/cell-10-output-2.pdf}
@@ -495,7 +551,7 @@ Any[0, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4]
 Increment = 150 INFLATION RATE = 0.05 Construction Cost = 30000
 
 \begin{verbatim}
-Any[0, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 4]
+Any[0, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 4]
 \end{verbatim}
 
 \includegraphics{template_files/mediabag/template_files/figure-pdf/cell-11-output-2.pdf}
@@ -503,8 +559,8 @@ Any[0, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 4]
 Increment = 150 Inflation Rate = 0.04 CONSTRUCTION COST = 20000
 
 \begin{Shaded}
-\begin{Highlighting}[numbers=left,,]
-\NormalTok{timesteps }\OperatorTok{=} \FloatTok{25} 
+\begin{Highlighting}[]
+\NormalTok{timesteps }\OperatorTok{=} \FloatTok{20} 
 \NormalTok{start\_spots }\OperatorTok{=} \FloatTok{0}
 \NormalTok{increment }\OperatorTok{=} \FloatTok{150}
 \NormalTok{demand\_growth\_rate }\OperatorTok{=} \FunctionTok{rand}\NormalTok{(}\FunctionTok{Normal}\NormalTok{(}\FloatTok{0.0045}\NormalTok{, }\FloatTok{0.001}\NormalTok{))}
@@ -527,7 +583,7 @@ Increment = 150 Inflation Rate = 0.04 CONSTRUCTION COST = 20000
 \end{Shaded}
 
 \begin{verbatim}
-Any[2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4]
+Any[2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4]
 \end{verbatim}
 
 \includegraphics{template_files/mediabag/template_files/figure-pdf/cell-12-output-2.pdf}
@@ -535,7 +591,7 @@ Any[2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4]
 Increment = 150 Inflation Rate = 0.04 CONSTRUCTION COST = 30000
 
 \begin{verbatim}
-Any[0, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4]
+Any[0, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3]
 \end{verbatim}
 
 \includegraphics{template_files/mediabag/template_files/figure-pdf/cell-13-output-2.pdf}
@@ -543,10 +599,83 @@ Any[0, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4]
 Increment = 150 Inflation Rate = 0.04 CONSTRUCTION COST = 40000
 
 \begin{verbatim}
-Any[0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3]
+Any[0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 3, 3]
 \end{verbatim}
 
 \includegraphics{template_files/mediabag/template_files/figure-pdf/cell-14-output-2.pdf}
+
+\section{Conclusions}\label{conclusions}
+
+\subsection{Discussion}\label{discussion}
+
+Our results demonstrate the modeling of the relationship between price
+and demand for a sequential decision problem where demand is a large
+factor on a given decision. As mentioned briefly in the problem
+statement, this model structure can be applied to many other cases
+beyond the parking garage problem. It can be applied to analyses for
+infrastructure development that supports renewable energy with the goal
+of building the appropriate size for that infrastructure to support the
+demands, remaining profitable, but also be resilient against natural
+disasters. For example, the model could be developed to find the ``sweet
+spot'' size for a solar farm where it is large enough to support the
+demands of the area it is serving, still being profitable, while also
+being large enough to remain partially operational should a natural
+disaster result in part of the farming being temporarily under
+maintenance. It can also provide more guidance on the front end of how
+changes in population or economical changes can impact how they can
+anticipate expansion of energy infrastructure. A large limitation to
+this model is that the way we determine demand is not the most accurate.
+We assumed that every entry/exit data point was equal to a full 12 hour
+day of parking in order to build the curve, which is not true as the raw
+data shows. We also aggregated all data to assume yearly demand and
+price from one day, which is not accurate or representative. We would
+suggest a better method to develop a price vs.~demand curve.
+
+\subsection{Conclusions}\label{conclusions-1}
+
+While the model structure allows for varying parameter changes, if we're
+assuming that each level of the parking garage includes 150 spots, a
+randomly sampled demand increase with a mean of 0.45\% and a standard
+deviation of 0.1\%, and an interest rate of 4\%, we observed that on
+average, a new level was built every 4-6 years. It was interesting to
+see that at the starting demand, it was not profitable to build even the
+first level until about 4-5 years in. This feature we've implemented now
+demonstrates how the relationship between price and demand will affect
+the decision at each yearly time step on whether to build an additional
+level. It also shows how it might take years before it is profitable to
+build a garage at all with a starting demand and price relationship
+compared to the costs to build.
+
+In the case of varying parameters, the lower the number of spots per
+level, the more levels were built sooner since there was a lower
+threshold of demand needed to justify the additional costs of building a
+new level of spots. At a higher interest rate, it would also result in
+building more levels sooner, because the demand decrease per dollar
+increase, was less and less each year. And with higher construction
+costs per space, the less levels were built.
+
+Our findings illustrate the correlation between price and demand within
+a sequential decision-making scenario, where demand significantly
+influences the decision-making process. This modeling framework is
+applicable to various scenarios beyond the context of parking garages.
+It can be utilized in analyzing infrastructure development aimed at
+supporting renewable energy initiatives, ensuring that infrastructure
+sizes align with demands to maintain profitability while also enhancing
+resilience against natural disasters.
+
+\section{References}\label{references}
+
+Litman, T. (2023). (rep.). Comprehensive Parking Supply, Cost and
+Pricing Analysis. Nijsten, T. (2023, August 25). Optimizing Parking
+Capacities in Urban Areas (thesis). XCarCity NL. Retrieved April 26,
+2024, from https://xcarcity.nl/downloads/MSc\_thesis\_Tygo\_Nijsten.pdf.
+Simićević, J., Milosavljević, N., \& Maletić, G. (2012). Influence of
+parking price on parking garage users' behaviour. PROMET - Traffic \&
+Transportation, 24(5), 413--423. https://doi.org/10.7307/ptt.v24i5.1177
+
+\phantomsection\label{refs}
+\begin{CSLReferences}{0}{1}
+\end{CSLReferences}
 
 
 
